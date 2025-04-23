@@ -1,0 +1,12 @@
+<div class="container">
+  <h1>Spam Checker</h1>
+
+  <textarea [(ngModel)]="emailText" rows="10" cols="50" placeholder="Wklej tutaj wiadomość e-mail..."></textarea>
+
+  <button (click)="checkSpam()">Sprawdź</button>
+
+  <div *ngIf="result" class="result-box">
+    <p><strong>Spam:</strong> {{ result.spam ? 'Tak' : 'Nie' }}</p>
+    <p><strong>Pewność:</strong> {{ result.confidence | number:'1.2-2' }}</p>
+  </div>
+</div>

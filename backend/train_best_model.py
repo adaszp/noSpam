@@ -1,3 +1,5 @@
+import json
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -8,15 +10,23 @@ from sklearn.metrics import f1_score
 import pandas as pd
 import joblib
 from sacred import Experiment
-from sacred.observers import FileStorageObserver
 
-from backend.constants import SACRED_OBSERVER_DIRECTORY
 from backend.model import EmailDataset, SpamClassifier
-import itertools
 
 # Initialize Sacred experiment
 ex = Experiment('spam_classifier')
-ex.observers.append(FileStorageObserver(SACRED_OBSERVER_DIRECTORY))
+
+with open('best_config.json', 'r') as f:
+    best_configuration = json.load(f)
+
+
+@ex.config
+def config():
+    epochs = best_configuration['epochs']
+    batch_size = best_configuration['batch_size']
+    learning_rate = best_configuration['learning_rate']
+    train_test_split_size = best_configuration['train_test_split_size']
+    random_seed = best_configuration['random_seed']
 
 
 # Load and preprocess data
@@ -69,30 +79,4 @@ def main(epochs, batch_size, learning_rate, train_test_split_size, random_seed):
         f1 = f1_score(all_labels, all_preds)
         if f1 > best_f1:
             best_f1 = f1
-
-        print(f"Epoch {epoch + 1} - F1 Score: {f1:.4f}")
-
-    # Log the best F1 score using Sacred
-    ex.log_scalar('best_f1_score', best_f1)
-    print(f"Best F1 Score: {best_f1:.4f}")
-
-
-# Manually iterating over different configurations
-if __name__ == "__main__":
-    # Define hyperparameters for the sweep
-    epochs_list = [5, 10, 20]
-    batch_sizes = [16, 32, 64]
-    learning_rates = [0.0001, 0.001, 0.01]
-
-    # Create combinations of all configurations
-    config_combinations = list(itertools.product(epochs_list, batch_sizes, learning_rates))
-
-    for epoch, batch_size, lr in config_combinations:
-        print(f"Running experiment with epochs={epoch}, batch_size={batch_size}, learning_rate={lr}")
-
-        # Use Sacred's experiment object to log and run
-        ex.run(config_updates={
-            'epochs': epoch,
-            'batch_size': batch_size,
-            'learning_rate': lr
-        })
+            torch.save(model.state_dict(), 'best_model.pth')

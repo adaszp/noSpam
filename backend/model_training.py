@@ -43,9 +43,9 @@ def main(epochs, batch_size, learning_rate, train_test_split_size, random_seed):
 
 if __name__ == "__main__":
     # Define hyperparameters for the sweep
-    epochs_list = [5]
-    batch_sizes = [16]
-    learning_rates = [0.0001]
+    epochs_list = [10, 25, 50]
+    batch_sizes = [16, 32, 64]
+    learning_rates = [0.01, 0.001, 0.0001]
 
     config_combinations = list(itertools.product(epochs_list, batch_sizes, learning_rates))
 

@@ -1,98 +1,60 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import f1_score
-import pandas as pd
-import joblib
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
+import itertools
 
 from backend.constants import SACRED_OBSERVER_DIRECTORY
-from backend.model import EmailDataset, SpamClassifier
-import itertools
+from backend.model import SpamClassifier
+from utils import load_and_vectorize_data, prepare_dataloaders, train_model
 
 # Initialize Sacred experiment
 ex = Experiment('spam_classifier')
 ex.observers.append(FileStorageObserver(SACRED_OBSERVER_DIRECTORY))
 
 
-# Load and preprocess data
+@ex.config
+def config():
+    epochs = 10
+    batch_size = 32
+    learning_rate = 0.001
+    train_test_split_size = 0.2
+    random_seed = 42
+
+
 @ex.automain
 def main(epochs, batch_size, learning_rate, train_test_split_size, random_seed):
-    data = pd.read_csv('emails.csv')  # expects 'text' and 'label' columns
-    vectorizer = CountVectorizer(stop_words='english')
-    X = vectorizer.fit_transform(data['text']).toarray()
-    y = data['label'].values
+    X, y = load_and_vectorize_data()
+    train_loader, test_loader, input_dim = prepare_dataloaders(
+        X, y, batch_size=batch_size, test_size=train_test_split_size, random_seed=random_seed
+    )
 
-    # Save the vectorizer
-    joblib.dump(vectorizer, 'vectorizer.pkl')
+    model = SpamClassifier(input_dim=input_dim)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=train_test_split_size, random_state=random_seed)
+    best_f1 = train_model(
+        model=model,
+        train_loader=train_loader,
+        test_loader=test_loader,
+        epochs=epochs,
+        learning_rate=learning_rate
+    )
 
-    train_dataset = EmailDataset(X_train, y_train)
-    test_dataset = EmailDataset(X_test, y_test)
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size)
-
-    # Model, criterion, and optimizer setup
-    model = SpamClassifier(input_dim=X.shape[1])
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-    best_f1 = 0
-
-    # Training loop
-    for epoch in range(epochs):
-        model.train()
-        for inputs, labels in train_loader:
-            outputs = model(inputs).squeeze()
-            loss = criterion(outputs, labels)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-        # Evaluation
-        model.eval()
-        all_preds = []
-        all_labels = []
-        with torch.no_grad():
-            for inputs, labels in test_loader:
-                outputs = model(inputs).squeeze()
-                preds = (outputs > 0.5).float()
-                all_preds.extend(preds.tolist())
-                all_labels.extend(labels.tolist())
-
-        f1 = f1_score(all_labels, all_preds)
-        if f1 > best_f1:
-            best_f1 = f1
-
-        print(f"Epoch {epoch + 1} - F1 Score: {f1:.4f}")
-
-    # Log the best F1 score using Sacred
     ex.log_scalar('best_f1_score', best_f1)
     print(f"Best F1 Score: {best_f1:.4f}")
 
 
-# Manually iterating over different configurations
 if __name__ == "__main__":
     # Define hyperparameters for the sweep
-    epochs_list = [5, 10, 20]
-    batch_sizes = [16, 32, 64]
-    learning_rates = [0.0001, 0.001, 0.01]
+    epochs_list = [5]
+    batch_sizes = [16]
+    learning_rates = [0.0001]
 
-    # Create combinations of all configurations
     config_combinations = list(itertools.product(epochs_list, batch_sizes, learning_rates))
 
     for epoch, batch_size, lr in config_combinations:
         print(f"Running experiment with epochs={epoch}, batch_size={batch_size}, learning_rate={lr}")
-
-        # Use Sacred's experiment object to log and run
         ex.run(config_updates={
             'epochs': epoch,
             'batch_size': batch_size,
-            'learning_rate': lr
+            'learning_rate': lr,
+            'train_test_split_size': 0.2,
+            'random_seed': 42
         })

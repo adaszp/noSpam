@@ -11,6 +11,7 @@ ex = Experiment('spam_classifier')
 with open('best_config.json', 'r') as f:
     best_configuration = json.load(f)
 
+
 @ex.config
 def config():
     epochs = best_configuration['epochs']
@@ -18,6 +19,7 @@ def config():
     learning_rate = best_configuration['learning_rate']
     train_test_split_size = best_configuration['train_test_split_size']
     random_seed = best_configuration['random_seed']
+
 
 @ex.automain
 def main(epochs, batch_size, learning_rate, train_test_split_size, random_seed):

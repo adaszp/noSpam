@@ -1,0 +1,1 @@
+{"batch_size": 16, "epochs": 25, "learning_rate": 0.01, "random_seed": 42, "seed": 533477241, "train_test_split_size": 0.2}

@@ -3,7 +3,7 @@ from sacred import Experiment
 
 from backend.constants import MODEL_SAVE_PATH
 from backend.model import SpamClassifier
-from utils import load_and_vectorize_data, prepare_dataloaders, train_model
+from backend.utils import load_and_vectorize_data, prepare_dataloaders, train_model
 
 ex = Experiment('spam_classifier')
 

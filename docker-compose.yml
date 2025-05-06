@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  no-spam-backend:
+    build:
+      context: ./backend
+    image:
+      python-backend
+    container_name: no-spam-backend
+    ports:
+      - "8000:8000"
+    networks:
+      - no-spam-net
+  no-spam-frontend:
+    build:
+      context: ./frontend/no-spam-client
+    container_name: no-spam-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - no-spam-backend
+    networks:
+      - no-spam-net
+
+networks:
+  no-spam-net:
+    driver: bridge

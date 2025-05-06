@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {environment} from '../environmets/environment.prod';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent {
   constructor(private http: HttpClient) {}
 
   checkSpam() {
-    this.http.post('http://localhost:8000/predict', { text: this.emailText })
+    this.http.post(`${environment.apiUrl}/predict`, { text: this.emailText })
       .subscribe(response => this.result = response);
   }
 }

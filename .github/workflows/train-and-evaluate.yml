@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
@@ -46,7 +46,7 @@ jobs:
           python backend/train_best_model.py
 
       - name: Upload model artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: spam-model-artifacts
           path: |

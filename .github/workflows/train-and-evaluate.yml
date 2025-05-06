@@ -10,6 +10,9 @@ on:
       - 'backend/get_best_hyperparameters.py'
       - 'backend/train_best_model.py'
       - 'backend/best_config.json'
+  pull_request:
+    branches:
+      - main
 
 jobs:
   retrain:

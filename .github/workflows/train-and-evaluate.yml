@@ -3,13 +3,7 @@ name: 🛠️ Train & Evaluate Spam Model
 on:
   push:
     paths:
-      - 'backend/emails.csv'
-      - 'backend/app.py'
-      - 'backend/utils.py'
-      - 'backend/model_training.py'
-      - 'backend/get_best_hyperparameters.py'
-      - 'backend/train_best_model.py'
-      - 'backend/best_config.json'
+      - 'backend/**'
   pull_request:
     branches:
       - main
@@ -29,27 +23,28 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
       - name: Run hyperparameter experiments
         run: |
-          python backend/model_training.py
+          python -m backend.model_training \
+            --observer-dir ${{ env.SACRED_OBSERVER_DIR }}
 
       - name: Select best hyperparameters
         run: |
-          python backend/get_best_hyperparameters.py \
-            --observer-dir $SACRED_OBSERVER_DIR \
+          python -m backend.get_best_hyperparameters \
+            --observer-dir ${{ env.SACRED_OBSERVER_DIR }} \
             --out-config backend/best_config.json
 
       - name: Train final model with best_config.json
         run: |
-          python backend/train_best_model.py
+          python -m backend.train_best_model
 
       - name: Upload model artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: spam-model-artifacts
           path: |

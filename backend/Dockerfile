@@ -11,7 +11,6 @@ USER appuser
 
 
 COPY --chown=appuser:appuser requirements.txt ./
-COPY --chown=appuser:appuser wheelhouse/ ./wheelhouse/
 
 USER root
 RUN pip install --no-cache-dir --default-timeout=300 \

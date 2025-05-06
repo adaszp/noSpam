@@ -28,7 +28,7 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run hyperparameter experiments
+      - name: Run models training
         run: |
           python -m backend.model_training \
             --observer-dir ${{ env.SACRED_OBSERVER_DIR }}

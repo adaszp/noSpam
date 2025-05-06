@@ -6,3 +6,4 @@ uvicorn
 joblib
 sentence_transformers
 hf_xet
+sacred

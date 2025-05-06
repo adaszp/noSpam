@@ -11,7 +11,7 @@ from backend.model import EmailDataset, SpamClassifier
 from sentence_transformers import SentenceTransformer
 
 
-def load_and_vectorize_data(csv_path='emails.csv', vectorizer_path=VECTORIZER_PATH):
+def load_and_vectorize_data(csv_path='backend/emails.csv', vectorizer_path=VECTORIZER_PATH):
     sentence_transformer = SentenceTransformer(EMBEDDING_MODEL_NAME, cache_folder='./transformer_cache')
     data = pd.read_csv(csv_path)
 

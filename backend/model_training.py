@@ -4,7 +4,7 @@ import itertools
 
 from backend.constants import SACRED_OBSERVER_DIRECTORY
 from backend.model import SpamClassifier
-from utils import load_and_vectorize_data, prepare_dataloaders, train_model
+from backend.utils import load_and_vectorize_data, prepare_dataloaders, train_model
 
 # Initialize Sacred experiment
 ex = Experiment('spam_classifier')
@@ -42,7 +42,6 @@ def main(epochs, batch_size, learning_rate, train_test_split_size, random_seed):
 
 
 if __name__ == "__main__":
-    # Define hyperparameters for the sweep
     epochs_list = [10, 25, 50]
     batch_sizes = [16, 32, 64]
     learning_rates = [0.01, 0.001, 0.0001]

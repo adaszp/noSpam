@@ -1,9 +1,8 @@
-name:  Train Spam Model
+name: Train Spam Model
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'backend/**'
 
@@ -14,22 +13,23 @@ jobs:
       SACRED_OBSERVER_DIR: backend/sacred_runs
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.9' }
+
+      - name: Cache pip
+        uses: actions/cache@v3
         with:
-          python-version: '3.9'
-
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
       - name: Run models training
-        run: |
-          python -m backend.model_training \
+        run: python -m backend.model_training
 
       - name: Select best hyperparameters
         run: |
@@ -38,8 +38,7 @@ jobs:
             --out-config backend/best_config.json
 
       - name: Train final model with best_config.json
-        run: |
-          python -m backend.train_best_model
+        run: python -m backend.train_best_model
 
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
@@ -48,3 +47,14 @@ jobs:
           path: |
             backend/best_config.json
             backend/best_model.pth
+
+  build-image:
+    needs: retrain
+    uses: ./.github/workflows/deploy-backend.yml
+    secrets:
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      artifact_path: backend/
+      image_tag: ${{ github.sha }}
+

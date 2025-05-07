@@ -19,10 +19,10 @@ RUN pip install --no-cache-dir --default-timeout=300 \
     -r requirements.txt
 
 
-# Back to appuser for safety
+
 USER appuser
 
-# Copy app source
+
 COPY --chown=appuser:appuser . .
 
 EXPOSE 8000

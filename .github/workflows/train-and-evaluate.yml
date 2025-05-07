@@ -54,6 +54,5 @@ jobs:
     with:
       artifact_path: backend/
       image_tag: ${{ github.sha }}
-    secrets:
-      docker_username: ${{ secrets.DOCKER_USERNAME }}
-      docker_token: ${{ secrets.DOCKER_TOKEN }}
+      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker_token: ${{ secrets.DOCKERHUB_TOKEN }}

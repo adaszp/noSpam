@@ -9,11 +9,12 @@ on:
       image_tag:
         required: true
         type: string
-    secrets:
       docker_username:
         required: true
+        type: string
       docker_token:
         required: true
+        type: string
 
 jobs:
   build-and-push:

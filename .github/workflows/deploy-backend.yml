@@ -1,0 +1,48 @@
+name: Creating Docker Image
+
+on:
+  workflow_run:
+    workflows: ["Train Spam Model"]
+    types:
+      - completed
+
+jobs:
+  build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download model artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: spam-model-artifacts
+          path: backend/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:${{ github.sha }}
+
+      - name: Confirm image was pushed
+        run: |
+          echo "Image tags:"
+          echo "  latest -> docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:latest"
+          echo "  sha    -> docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:${{ github.sha }}"

@@ -3,8 +3,7 @@ name: Creating Docker Image
 on:
   workflow_run:
     workflows: ["Train Spam Model"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   build-and-push:

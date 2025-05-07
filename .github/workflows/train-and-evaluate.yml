@@ -52,7 +52,8 @@ jobs:
     needs: retrain
     uses: ./.github/workflows/deploy-backend.yml
     with:
+      artifact_path: backend/
+      image_tag: ${{ github.sha }}
+    secrets:
       docker_username: ${{ secrets.DOCKER_USERNAME }}
-      docker_token:   ${{ secrets.DOCKER_TOKEN }}
-      artifact_path:  backend/
-      image_tag:      ${{ github.sha }}
+      docker_token: ${{ secrets.DOCKER_TOKEN }}

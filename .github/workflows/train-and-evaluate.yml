@@ -51,11 +51,10 @@ jobs:
   build-image:
     needs: retrain
     uses: ./.github/workflows/deploy-backend.yml
-    env:
+    secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       artifact_path: backend/
       image_tag: ${{ github.sha }}
-      docker_username: ${{ env.DOCKERHUB_USERNAME }}
-      docker_token: ${{ env.DOCKERHUB_TOKEN }}
+

@@ -1,47 +1,48 @@
-name: Creating Docker Image
+name: Creating Spam-Backend-Image
 
 on:
-  workflow_run:
-    workflows: ["Train Spam Model"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      docker_username:
+        required: true
+        type: string
+      docker_token:
+        required: true
+        type: string
+      artifact_path:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
 
 jobs:
   build-and-push:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download model artifacts
         uses: actions/download-artifact@v4
         with:
           name: spam-model-artifacts
-          path: backend/
+          path: ${{ inputs.artifact_path }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ inputs.docker_username }}
+          password: ${{ inputs.docker_token }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v4
         with:
           context: backend
           file: backend/Dockerfile
           push: true
           tags: |
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:latest
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:${{ github.sha }}
+            docker.io/${{ inputs.docker_username }}/spam-api:latest
+            docker.io/${{ inputs.docker_username }}/spam-api:${{ inputs.image_tag }}
 
-      - name: Confirm image was pushed
-        run: |
-          echo "Image tags:"
-          echo "  latest -> docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:latest"
-          echo "  sha    -> docker.io/${{ secrets.DOCKERHUB_USERNAME }}/spam-api:${{ github.sha }}"
+      - run: echo "Pushed image with tag ${{ inputs.image_tag }}"

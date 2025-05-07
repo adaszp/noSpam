@@ -10,7 +10,7 @@ on:
         required: true
         type: string
     secrets:
-      DOCKERHUB_USERNAME:
+      DOCKERHUB_USER:
         required: true
       DOCKERHUB_TOKEN:
         required: true
@@ -20,7 +20,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     steps:

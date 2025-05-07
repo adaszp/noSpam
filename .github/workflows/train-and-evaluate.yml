@@ -52,7 +52,7 @@ jobs:
     needs: retrain
     uses: ./.github/workflows/deploy-backend.yml
     secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USER }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       artifact_path: backend/

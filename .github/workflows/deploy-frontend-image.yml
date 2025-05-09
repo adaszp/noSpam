@@ -1,0 +1,17 @@
+name: Build & Deploy Spam-Client
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/no-spam-client/**'
+      - '.github/workflows/create-frontend-image.yml'
+
+jobs:
+  deploy-frontend:
+    uses: ./.github/workflows/create-frontend-image.yml
+    with:
+      image_tag: ${{ github.sha }}
+    secrets:
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

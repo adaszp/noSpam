@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
 
 jobs:
   retrain:
@@ -13,22 +14,26 @@ jobs:
       SACRED_OBSERVER_DIR: backend/sacred_runs
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
-        with: { python-version: '3.9' }
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
       - name: Cache pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run models training
+      - name: Run model training
         run: python -m backend.model_training
 
       - name: Select best hyperparameters
@@ -51,10 +56,9 @@ jobs:
   build-image:
     needs: retrain
     uses: ./.github/workflows/deploy-backend.yml
+    with:
+      artifact_path: backend/
+      image_tag: ${{ github.head_ref }}
     secrets:
       DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-    with:
-      artifact_path: backend/
-      image_tag: ${{ github.sha }}
-

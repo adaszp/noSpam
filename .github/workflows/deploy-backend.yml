@@ -1,69 +1,36 @@
-name: Creating Spam-Backend-Image
+name: Build & Deploy Backend
 
 on:
-  workflow_call:
-    inputs:
-      artifact_path:
-        required: true
-        type: string
-      image_tag:
-        required: true
-        type: string
-    secrets:
-      DOCKERHUB_USER:
-        required: true
-      DOCKERHUB_TOKEN:
-        required: true
+  push:
+    branches: [ main ]
 
+env:
+  REGISTRY: docker.io
+  REPOSITORY: spam-backend
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Repository checkout
+        uses: actions/checkout@v3
 
+      - name:  Version from github_sha
+        run: echo "VERSION=$(echo ${GITHUB_SHA} | cut -c1-8)" >>"$GITHUB_ENV"
 
-      - name: Download model artifacts
-        uses: actions/download-artifact@v4
+      - name: Log in do Docker Hub
+        uses: docker/login-action@v2
         with:
-          name: spam-model-artifacts
-          path: ${{ inputs.artifact_path }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Debug
-        shell: bash
-        run: | 
-          echo "— Checking that secrets are set —"
-          if [ -z "$DOCKERHUB_USER" ]; then
-            echo "ERROR: DOCKERHUB_USERNAME is empty!"
-            exit 1
-          fi
-          echo "DOCKERHUB_USERNAME is set (length: ${#DOCKERHUB_USER})"
-          # GitHub masks secret values, but you can at least confirm it’s non-empty
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+      - name: Build i Push Backend Docker Image
+        uses: docker/build-push-action@v2
         with:
-          context: backend
-          file: backend/Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: |
-            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:latest
-            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:${{ inputs.image_tag }}
-
-      - name: Confirm
-        run: echo "Pushed image with tag ${{ inputs.image_tag }}"
+            ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USER }}/${{ env.REPOSITORY }}:latest
+            ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USER }}/${{ env.REPOSITORY }}:${{ env.VERSION }}

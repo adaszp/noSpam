@@ -1,49 +1,41 @@
-name: Creating Spam-Client Image
+name: Build and Push Frontend Image
 
 on:
-  workflow_call:
-    inputs:
-      image_tag:
-        description: A tag to apply (usually the commit SHA)
-        required: true
-        type: string
-    secrets:
-      DOCKERHUB_USER:
-        required: true
-      DOCKERHUB_TOKEN:
-        required: true
+  push:
+    branches: [ main ]
+
+env:
+  REGISTRY: docker.io
+  REPOSITORY: spam-frontend
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repozytorium
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Ustaw VERSION = pierwsze 8 znaków SHA
+        run: |
+          echo "VERSION=$(echo ${GITHUB_SHA} | cut -c1-8)" >>"$GITHUB_ENV"
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Log in do Docker Hub
+        uses: docker/login-action@v2
         with:
-          registry: docker.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push front-end image
-        uses: docker/build-push-action@v3
+      - name: Build i Push Frontend Docker Image
+        uses: docker/build-push-action@v2
         with:
-          # point at your client folder
-          context: ./frontend/no-spam-client
-          file: ./frontend/no-spam-client/Dockerfile
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: |
-            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-client:latest
-            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-client:${{ inputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USER }}/${{ env.REPOSITORY }}:latest
+            ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USER }}/${{ env.REPOSITORY }}:${{ env.VERSION }}
 
-      - name: Confirm
-        run: echo "Pushed front-end image with tag ${{ inputs.image_tag }}"
+      - name: Wyświetl zbudowaną wersję
+        run: |
+          echo "Built frontend image tag: ${{ env.VERSION }}"

@@ -11,7 +11,7 @@ jobs:
   deploy-frontend:
     uses: ./.github/workflows/create-frontend-image.yml
     with:
-      image_tag: ${{ github.sha }}
+      image_tag: ${{ replace(github.head_ref, '/', '-') }}
     secrets:
       DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

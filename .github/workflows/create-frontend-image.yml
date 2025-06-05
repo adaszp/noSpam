@@ -4,15 +4,15 @@ on:
   workflow_call:
     inputs:
       image_tag:
-        description: 'SHA tag'
+        description: 'Tag under which we will push the image (e.g. branch name or SHA)'
         required: true
         type: string
     secrets:
       DOCKERHUB_USER:
-        description: 'Username Docker Hub'
+        description: 'Docker Hub username'
         required: true
       DOCKERHUB_TOKEN:
-        description: 'Token Hub password'
+        description: 'Docker Hub access token or password'
         required: true
 
 jobs:
@@ -20,27 +20,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout repozytorium
+      - name: Checkout repository
         uses: actions/checkout@v3
 
 
-      - name: Version from input
+      - name: Set VERSION from input
         run: |
           echo "VERSION=${{ inputs.image_tag }}" >>"$GITHUB_ENV"
 
-      # —————— 3) Logowanie do Docker Huba (aby móc wypchnąć obraz) ——————
-      - name: Log in do Docker Hub
+
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # —————— 4) Budowanie i wypychanie obrazu frontendowego ——————
-      - name: Build i Push Frontend Docker Image
+
+      - name: Build and Push Frontend Docker Image
         uses: docker/build-push-action@v2
         with:
-          # kontekst ustawiony na katalog z kodem klienta (spam-client)
           context: ./frontend/no-spam-client
           file: ./frontend/no-spam-client/Dockerfile
           push: true
@@ -48,7 +47,7 @@ jobs:
             docker.io/${{ secrets.DOCKERHUB_USER }}/spam-client:latest
             docker.io/${{ secrets.DOCKERHUB_USER }}/spam-client:${{ env.VERSION }}
 
-      # —————— 5) (opcjonalnie) Wyświetlenie w logach, jakiego taga użyliśmy ——————
-      - name: Wyświetl zbudowaną wersję
+
+      - name: Display built version
         run: |
           echo "Built frontend image tag: ${{ env.VERSION }}"

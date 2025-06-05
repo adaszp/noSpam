@@ -47,7 +47,8 @@ jobs:
           echo "SANITIZED_TAG=$SANITIZED_TAG" >> "$GITHUB_ENV"
 
       - name: Debug sanitized tag
-        run: echo "Using sanitized tag: ${{ env.SANITIZED_TAG }}"
+        run: |
+          echo "Using sanitized tag: ${{ env.SANITIZED_TAG }}"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -67,4 +68,5 @@ jobs:
             docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:${{ env.SANITIZED_TAG }}
 
       - name: Confirm
-        run: echo "Pushed image with tag: ${{ env.SANITIZED_TAG }}"
+        run: |
+          echo "Pushed image with tag: ${{ env.SANITIZED_TAG }}"

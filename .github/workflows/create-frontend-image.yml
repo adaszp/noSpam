@@ -26,8 +26,8 @@ jobs:
       - name: Sanitize IMAGE_TAG (replace "/" with "-")
         id: sanitize
         run: |
-          # Replace any "/" in the raw inputs.image_tag with "-" so it's a valid Docker tag
-          SANITIZED_TAG="${{ inputs.image_tag//\//- }}"
+          raw="${{ inputs.image_tag }}"
+          SANITIZED_TAG="${raw//\//-}"
           echo "SANITIZED_TAG=$SANITIZED_TAG" >> "$GITHUB_ENV"
 
       - name: Debug sanitized tag

@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       image_tag:
-        description: 'Tag under which to push the backend image (e.g. branch-name-or-sha)'
+        description: 'Raw tag string (e.g. branch name or SHA). Will be sanitized before use.'
         required: true
         type: string
     secrets:
@@ -39,15 +39,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Debug secrets
-        shell: bash
+      - name: Sanitize IMAGE_TAG (replace "/" with "-")
+        id: sanitize
         run: |
-          echo "— Checking that DOCKERHUB_USER is set —"
-          if [ -z "$DOCKERHUB_USER" ]; then
-            echo "ERROR: DOCKERHUB_USER is empty!"
-            exit 1
-          fi
-          echo "DOCKERHUB_USER is set (length: ${#DOCKERHUB_USER})"
+          # Replace any "/" in the raw inputs.image_tag with "-" so it's a valid Docker tag
+          SANITIZED_TAG="${{ inputs.image_tag//\//- }}"
+          echo "SANITIZED_TAG=$SANITIZED_TAG" >> "$GITHUB_ENV"
+
+      - name: Debug sanitized tag
+        run:  | 
+          echo "Using sanitized tag: ${{ env.SANITIZED_TAG }}"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -64,8 +65,8 @@ jobs:
           push: true
           tags: |
             docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:latest
-            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:${{ inputs.image_tag }}
+            docker.io/${{ secrets.DOCKERHUB_USER }}/spam-api:${{ env.SANITIZED_TAG }}
 
       - name: Confirm
         run: |
-          echo "Pushed image with tag: ${{ inputs.image_tag }}"
+          echo "Pushed image with tag: ${{ env.SANITIZED_TAG }}"
